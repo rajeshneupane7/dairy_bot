@@ -1,0 +1,76 @@
+# Dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+bun.lockb
+
+# Next.js
+.next
+out
+build
+dist
+
+# Production
+.env.production
+.env.local
+.env.*.local
+
+# Testing
+coverage
+.nyc_output
+
+# Misc
+.DS_Store
+*.pem
+.git
+.gitignore
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local files
+uploads/*
+!uploads/.gitkeep
+db/*.db
+db/*.db-shm
+db/*.db-wal
+db/*.db-journal
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+
+# Logs
+logs
+*.log
+dev.log
+server.log
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Skills (too large for container)
+skills/*
+
+# Examples
+examples/*
+
+# Cache
+.cache
+.parcel-cache
+.vercel
+.netlify
+
+# Temporary files
+tmp
+temp

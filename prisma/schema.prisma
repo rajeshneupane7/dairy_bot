@@ -1,0 +1,133 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User model for tracking dairy producers
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  chatSessions ChatSession[]
+}
+
+// Document model for uploaded PDFs and other documents
+model Document {
+  id          String   @id @default(cuid())
+  userId      String?
+  fileName    String
+  filePath    String
+  fileType    String
+  fileSize    Int
+  title       String?
+  category    String   // e.g., 'Breeding', 'Nutrition', 'Management', 'Reproduction', 'Precision Dairy'
+  uploadedAt  DateTime @default(now())
+  processedAt DateTime?
+
+  chunks DocumentChunk[]
+}
+
+// Document chunk for RAG system
+model DocumentChunk {
+  id          String   @id @default(cuid())
+  documentId  String
+  chunkIndex  Int
+  content     String
+  metadata    String?  // JSON string with additional metadata
+  embeddingId String?  // Reference to embedding if using vector DB
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+}
+
+// Chat session for conversations
+model ChatSession {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  title     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages ChatMessage[]
+  queries  QueryLog[]
+
+  @@index([userId])
+}
+
+// Chat messages
+model ChatMessage {
+  id          String   @id @default(cuid())
+  sessionId   String
+  role        String   // 'user', 'assistant', 'system'
+  content     String
+  sources     String?  // JSON string with source references
+  queryType   String?  // 'rag', 'web_search', 'csv_analysis', 'hybrid'
+  responseTime Float?  // Response time in seconds
+  createdAt   DateTime @default(now())
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([createdAt])
+}
+
+// Query log for analytics
+model QueryLog {
+  id          String   @id @default(cuid())
+  sessionId   String?
+  query       String
+  queryType   String   // 'rag', 'web_search', 'csv_analysis', 'hybrid'
+  documents   String?  // JSON array of document IDs used
+  webSources  String?  // JSON array of web sources used
+  csvFile     String?  // Reference to CSV file if used
+  qualityScore Float? // Response quality score
+  triggeredWebSearch Boolean @default(false)
+  createdAt   DateTime @default(now())
+
+  session ChatSession? @relation(fields: [sessionId], references: [id])
+
+  @@index([sessionId])
+  @@index([queryType])
+  @@index([createdAt])
+}
+
+// CSV/Excel file model for farm data analysis
+model FarmDataFile {
+  id          String   @id @default(cuid())
+  fileName    String
+  filePath    String
+  fileType    String   // 'csv', 'excel'
+  rowCount    Int
+  columns     String   // JSON string of column names
+  uploadedAt  DateTime @default(now())
+  lastAccessed DateTime @default(now())
+
+  @@index([fileType])
+}
+
+// Web search result cache
+model WebSearchCache {
+  id          String   @id @default(cuid())
+  query       String
+  results     String   // JSON string of search results
+  searchedAt  DateTime @default(now())
+  hitCount    Int      @default(1)
+
+  @@unique([query])
+  @@index([searchedAt])
+}
